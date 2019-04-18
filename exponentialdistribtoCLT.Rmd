@@ -1,0 +1,86 @@
+---
+title: "Properties of the distribution of the mean and variance of 40 exponentials"
+author: "Nathalie Descusse-Brown"
+date: "January 29, 2019"
+output: pdf_document
+?sappoutput:
+  html_document:
+    keep_md: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Overview
+The work presented here aims at identifying the characteritics of the distribution of randomly generated exponentials. In order to do so we first perform a number of simulations with the goal to produce 1000 samples of 40 random exponentials. We know from the Central Limit theorem that the distribution of the sample mean should be approaching the normal distribution if the sample size is large enough, and this is a theory we will investigate through our work in order to confirm this assumption.
+
+## Simulations
+
+First we will generate the 1000 samples of 40 random exponentials with a rate parameter lambda of 0.2. For each of these samples we will calculate the mean and the variance. We will then compare the means and variances distributions to the population mean (which the theory tells us is 1/lamba, or in our case 5) and population variance (which is 1/lambda^2, or 25 in the present case).
+
+
+```{r rexp}
+library(knitr)
+set.seed(2)
+lambda <- 0.2
+rexpsims <- rexp(40000,lambda)
+rexpsimsm <- matrix(rexpsims,1000,40)
+meansexp <- apply(rexpsimsm,1,mean)
+varexp <- apply(rexpsimsm,1,var)
+
+```
+
+## Sample Mean versus Theoretical Mean
+We know from theory that the sample mean should be a pretty good approximation of the population mean. In this instance the population mean is 1/lambda = 5, so we would expect our sample mean to be pretty close to 5. This is something we can verify by plotting the distribution of averages we previously simulated and its mean.
+
+```{r meanplots, echo=FALSE}
+##par(mfrow = c(1, 2),mar=c(5,4,4,3))
+hist(meansexp,breaks=50,xlab="Sample Mean",main="Distribution of averages of 40 exponentials",xaxt='n')
+abline(v=1/lambda,col="magenta",lwd=2,lty=1)
+abline(v=mean(meansexp),col="green",lwd=2,lty=1)
+legend(6,70, c("population mean","sample mean"), lty=1,col=c("magenta","green"),bty="n",cex = 0.8)
+axis(side=1, at=seq(0,10, 1), labels=seq(0,10,1))
+```
+
+We have also calculated the actual mean of this distribution and found it to be ```r mean(meansexp)```, so a pretty good estimate of the population mean as we can see.
+
+
+## Sample Variance versus Theoretical Variance
+We also know that the mean of the distribution of sample variances should be a pretty good approximation of the population variance (1/lambda^2 = 25). Let us verify this by by plotting the distribution of variances we previously simulated and its mean.
+
+```{r varplots, echo=FALSE}
+##par(mfrow = c(1, 2),mar=c(5,4,4,3))
+hist(varexp,breaks=50,xlab="Sample Variance",main="Distribution of variances of 40 exponentials")
+abline(v=1/lambda^2,col="blue",lwd=2,lty=1)
+abline(v=mean(varexp),col="red",lwd=2,lty=1)
+legend(35,95, c("population\n variance","sample variance"), lty=1,col=c("blue","red"),bty="n",cex = 0.8)
+axis(side=1, at=seq(0,80, 10), labels=seq(0,80,10))
+```
+
+We have also calculated the actual mean of this distribution and found it to be ```r mean(varexp)```, so a pretty good estimate of the population variance as we can see.
+
+## Distribution
+The theory tells us that the distribution of the sample mean and the distribution of sample variance should both be normally distributed. The above plots seem to indicate that the sample mean is indeed normally distributed but there seems to be some skewness in the distribution of the sample variance.
+
+This is something we can verify by using a qqplot, which will plot normal distribution quantiles again the quantiles of our actual distribution. If our distribution is approximately normal then the qqplot points should all approximately fit on a straight line.
+
+### Sample Mean
+
+```{r qqplotmean, echo=FALSE}
+set.seed(2)
+qqplot(meansexp,rnorm(1:length(meansexp)),xlab="Quantiles of the distribution of the mean of 40 exponentials",ylab="Normal distribution quantiles")
+abline(lm(quantile(rnorm(1:length(meansexp)))~quantile(meansexp)),col="red")
+```
+
+As we can see from the above plot, the linear model fits the data reasonably well, which helps us conclude that the distribution of sample means is approximately normal.
+
+### Sample Variance
+
+```{r qqplotvariance, echo=FALSE}
+set.seed(2)
+qqplot(varexp,rnorm(1:length(varexp)),,xlab="Quantiles of the distribution of the variance of 40 exponentials",ylab="Normal distribution quantiles")
+abline(lm(quantile(rnorm(1:length(varexp)))~quantile(varexp)),col="red")
+```
+
+The above plot demonstrates that the distribution of sample variances is positively skewed so does not follow a normal distribution.
